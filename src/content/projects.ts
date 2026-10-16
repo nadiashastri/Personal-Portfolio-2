@@ -50,6 +50,25 @@ export const PROJECTS: readonly Project[] = [
     },
   },
   {
+    id: 'llm-from-scratch',
+    title: 'Large Language Model from Scratch',
+    status: 'In progress',
+    description: [
+      'Currently developing a large language model (LLM) from scratch using Python to gain a deeper understanding of the mathematical foundations and computational architecture behind modern artificial intelligence. The project focuses on implementing core concepts in natural language processing, including tokenization, embeddings, neural networks, and transformer architectures.',
+      "Through this project, I'm exploring how language models learn patterns from textual data, generate predictions, and use attention mechanisms to process contextual information. My goal is to strengthen my understanding of deep learning while gaining hands-on experience with the algorithms and mathematical principles that power generative AI.",
+    ],
+    stack: ['Python', 'PyTorch', 'NumPy'],
+    features: {
+      title: 'Planned features',
+      items: [
+        'Text tokenization and data preprocessing',
+        'Neural network and transformer architecture implementation',
+        'Self-attention mechanisms and positional embeddings',
+        'Model training, evaluation, and text generation',
+      ],
+    },
+  },
+  {
     id: 'skincare',
     title: 'Personalized Skincare Recommender',
     affiliationLabel: 'Program',
