@@ -1,0 +1,50 @@
+@import 'tailwindcss';
+
+@theme {
+  --font-display: 'Bricolage Grotesque', ui-sans-serif, system-ui, sans-serif;
+  --font-sans: 'Figtree', ui-sans-serif, system-ui, sans-serif;
+  --font-serif: 'Fraunces', ui-serif, Georgia, serif;
+  /** Same face as the 3D title lettering (blender/fonts), for small UI that should match it. */
+  --font-title: 'Lilita One', 'Bricolage Grotesque', ui-sans-serif, sans-serif;
+
+  /* Illinois brand colours plus a few supporting tones */
+  --color-illini-orange: #ff5f05;
+  --color-illini-orange-deep: #d44c00;
+  --color-illini-blue: #13294b;
+  --color-illini-blue-soft: #1e3a66;
+  --color-cream: #fbf6ee;
+  --color-ink: #0c1a30;
+
+  --shadow-card: 0 1px 0 rgb(255 255 255 / 0.6) inset, 0 18px 40px -18px rgb(12 26 48 / 0.45),
+    0 4px 10px -4px rgb(12 26 48 / 0.18);
+  --shadow-chip: 0 6px 18px -8px rgb(12 26 48 / 0.45);
+}
+
+@layer base {
+  html,
+  body,
+  #root {
+    height: 100%;
+    margin: 0;
+    overflow: hidden;
+    background: #e7e3d3;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    color: var(--color-ink);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  :focus-visible {
+    outline: 3px solid var(--color-illini-orange);
+    outline-offset: 3px;
+  }
+}
+
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
+}
