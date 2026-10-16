@@ -18,13 +18,15 @@ import type { WindowSpec } from './parts/windows'
 const BASE = 1 // stone water table / terrace level
 const FLOORS = [4.6, 4.2, 3.8]
 const WALL_TOP = BASE + FLOORS.reduce((a, b) => a + b, 0) // 13.6
-const MAIN = { w: 56, d: 24 }
+export const MAIN = { w: 56, d: 24 }
 const PAVILION = { w: 20, out: 1.2 }
 const ROOF_H = 8.6
 const CORNICE_H = 0.85
 const ROOF_Y = WALL_TOP + CORNICE_H - 0.1
 const RIDGE_Y = ROOF_Y + ROOF_H
-const WING = { w: 19, d: 26, setBack: 5, top: BASE + 4.4 + 4.0 }
+export const WING = { w: 19, d: 26, setBack: 5, top: BASE + 4.4 + 4.0 }
+/** Front terrace (width along the facade, depth towards the Quad). */
+export const UNION_TERRACE = { w: 46, d: 7 }
 const BAY = 4
 
 const GROUND_WINDOW: WindowSpec = { width: 1.5, height: 3.1, arched: true, cols: 3, rows: 4, head: 'keystone' }
@@ -164,7 +166,7 @@ function buildUnion() {
     .addWindows(WING_UPPER, sills.wingUpper)
 
   // --- Front terrace with steps down to the plaza.
-  const T = { w: 46, d: 7 }
+  const T = UNION_TERRACE
   parts.add(m.limestone, place(box(T.w, BASE, T.d), [0, BASE / 2, T.d / 2]))
   for (let i = 0; i < 5; i++) {
     const h = BASE - (i + 1) * 0.2

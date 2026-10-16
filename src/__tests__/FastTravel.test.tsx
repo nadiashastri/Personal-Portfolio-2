@@ -11,11 +11,18 @@ const teleports: { key: number; position: readonly number[] }[] = []
 vi.mock('../scene/Experience', async () => {
   const { useEffect } = await import('react')
   return {
-    Experience: ({ controlsEnabled, teleport }: { controlsEnabled: boolean; teleport?: { key: number; position: readonly number[] } }) => {
+    Experience: ({ controlsEnabled, teleport, lighting }: { controlsEnabled: boolean; teleport?: { key: number; position: readonly number[] }; lighting?: string }) => {
       useEffect(() => {
         if (teleport) teleports.push({ key: teleport.key, position: teleport.position })
       }, [teleport])
-      return <div data-testid="experience" data-controls={String(controlsEnabled)} data-teleport={teleport?.position.join(',') ?? ''} />
+      return (
+        <div
+          data-testid="experience"
+          data-controls={String(controlsEnabled)}
+          data-teleport={teleport?.position.join(',') ?? ''}
+          data-lighting={lighting}
+        />
+      )
     },
   }
 })
@@ -110,5 +117,36 @@ describe('Guide quick travel', () => {
     await user.keyboard('e')
     expect(screen.getAllByRole('dialog')).toHaveLength(1)
     expect(screen.getByRole('dialog', { name: /quad guide/i })).toBeInTheDocument()
+  })
+})
+
+describe('Guide map', () => {
+  it('fast-travels from a map pin with the same system as the list', async () => {
+    const user = await startExploring()
+    await user.keyboard('g')
+    expect(screen.getByRole('img', { name: /illustrated map of the main quad/i })).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Travel to Projects' }))
+    const foellinger = DESTINATIONS.find((d) => d.id === 'foellinger')!
+    await waitFor(() => expect(screen.getByTestId('experience')).toHaveAttribute('data-teleport', foellinger.arrival.position.join(',')))
+    await waitFor(() => expect(location()).toHaveTextContent(/^Foellinger Auditorium$/))
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+  })
+})
+
+describe('Lighting mode', () => {
+  it('defaults to Daylight, switches to Sunset, and stays Sunset through fast travel', async () => {
+    const user = await startExploring()
+    const scene = screen.getByTestId('experience')
+    expect(scene).toHaveAttribute('data-lighting', 'daylight')
+    await user.keyboard('{Escape}')
+    await user.click(screen.getByRole('radio', { name: 'Sunset' }))
+    expect(scene).toHaveAttribute('data-lighting', 'sunset')
+
+    await user.keyboard('g')
+    await user.click(screen.getByRole('button', { name: /Illini Union/ }))
+    const union = DESTINATIONS.find((d) => d.id === 'union')!
+    await waitFor(() => expect(scene).toHaveAttribute('data-teleport', union.arrival.position.join(',')))
+    expect(scene).toHaveAttribute('data-lighting', 'sunset')
+    expect(screen.getByRole('radio', { name: 'Sunset' })).toBeChecked()
   })
 })

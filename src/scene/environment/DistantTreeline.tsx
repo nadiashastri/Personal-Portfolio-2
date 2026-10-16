@@ -1,6 +1,7 @@
 import { useMemo, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
-import { CanvasTexture, DoubleSide, RepeatWrapping, SRGBColorSpace, type Mesh } from 'three'
+import { CanvasTexture, DoubleSide, RepeatWrapping, SRGBColorSpace, type Mesh, type MeshBasicMaterial } from 'three'
+import { blendColor, timeOfDay } from '../../lib/timeOfDay'
 import { createRandom } from '../../lib/random'
 
 /** Painted silhouette of distant tree crowns and rooftops, wrapped around the horizon. */
@@ -47,11 +48,20 @@ function createTreelineTexture() {
 export function DistantTreeline() {
   const mesh = useRef<Mesh>(null)
   const texture = useMemo(createTreelineTexture, [])
-  useFrame(({ camera }) => mesh.current?.position.set(camera.position.x, 0, camera.position.z))
+  const material = useRef<MeshBasicMaterial>(null)
+  const seen = useRef(-1)
+  useFrame(({ camera }) => {
+    mesh.current?.position.set(camera.position.x, 0, camera.position.z)
+    // Warm the hazy tree line with the lighting mode.
+    if (material.current && seen.current !== timeOfDay.version) {
+      seen.current = timeOfDay.version
+      blendColor('treelineTint', timeOfDay.value, material.current.color)
+    }
+  })
   return (
     <mesh ref={mesh} position={[0, 0, 0]} frustumCulled={false}>
       <cylinderGeometry args={[360, 360, 46, 64, 1, true]} />
-      <meshBasicMaterial map={texture} transparent alphaTest={0.5} side={DoubleSide} depthWrite={false} />
+      <meshBasicMaterial ref={material} map={texture} transparent alphaTest={0.5} side={DoubleSide} depthWrite={false} />
     </mesh>
   )
 }

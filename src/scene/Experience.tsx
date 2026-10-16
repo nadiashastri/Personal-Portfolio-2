@@ -19,6 +19,7 @@ import { QuadDay } from './union/QuadDay'
 import { HeadingTracker } from './installations/HeadingTracker'
 import { LocationTracker } from './installations/LocationTracker'
 import type { LocationId } from '../config/locationZones'
+import type { LightingMode } from '../config/lighting'
 import { createWorldData } from './worldData'
 
 interface ExperienceProps {
@@ -43,6 +44,8 @@ interface ExperienceProps {
   compassHeadingRef?: RefObject<HTMLElement | null>
   /** Instantly moves the player (e.g. back outside Foellinger). */
   teleport?: Viewpoint & { key: number }
+  /** Daylight or Sunset (blends smoothly when it changes). */
+  lighting?: LightingMode
   /** False while another scene (the auditorium) is showing: the Quad stops rendering. */
   active?: boolean
 }
@@ -52,7 +55,7 @@ const GRASS_BLADES =
   typeof window !== 'undefined' && window.matchMedia?.('(pointer: coarse)').matches ? 20000 : 60000
 
 /** Full-screen 3D canvas: environment, the Quad and the player. */
-export function Experience({ controlsEnabled, start, settle = false, onAboutRangeChange, aboutPromptRef, onFoellingerRangeChange, foellingerPromptRef, onQuadDayTargetChange, quadDayPromptRef, onLocationChange, compassNeedleRef, compassHeadingRef, teleport, active = true }: ExperienceProps) {
+export function Experience({ controlsEnabled, start, settle = false, onAboutRangeChange, aboutPromptRef, onFoellingerRangeChange, foellingerPromptRef, onQuadDayTargetChange, quadDayPromptRef, onLocationChange, compassNeedleRef, compassHeadingRef, teleport, active = true, lighting = 'daylight' }: ExperienceProps) {
   const world = useMemo(createWorldData, [])
 
   return (
@@ -65,7 +68,7 @@ export function Experience({ controlsEnabled, start, settle = false, onAboutRang
         gl={{ antialias: true, powerPreference: 'high-performance', toneMapping: NeutralToneMapping }}
       >
         <AdaptiveDpr pixelated={false} />
-        <Atmosphere />
+        <Atmosphere mode={lighting} />
         <Lighting />
         <Ground paving={world.paving} detail={world.detail} />
         <GrassField paving={world.paving} count={GRASS_BLADES} />

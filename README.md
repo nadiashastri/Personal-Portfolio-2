@@ -36,7 +36,8 @@ npm run preview    # serve the production build locally
 
 Review shortcuts (skip the intro): `?view=<name>` opens a named camera, e.g. `?view=aboutMe`,
 `?view=quadDay`, `?view=foellingerEntrance` (full list in `src/config/viewpoints.ts`);
-`?scene=auditorium` opens the project showcase; `?stats` shows an FPS meter.
+`?scene=auditorium` opens the project showcase; `?lighting=sunset` starts in Sunset mode;
+`?stats` shows an FPS meter.
 
 ## Tests
 

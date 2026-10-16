@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { AnimatePresence, MotionConfig, motion } from 'motion/react'
 import { VIEWPOINTS, getRequestedViewpoint, type Viewpoint } from './config/viewpoints'
 import { getDestination, isWithinWalkableArea } from './config/fastTravel'
+import type { LightingMode } from './config/lighting'
 import { labelFor, type LocationId } from './config/locationZones'
 import { WORK_BOARD_ID } from './config/quadDay'
 import { FOELLINGER_ENTRANCE } from './config/world'
@@ -13,6 +14,7 @@ import { ControlsHint, Crosshair } from './ui/HUD'
 import { IntroOverlay } from './ui/IntroOverlay'
 import { AboutMeCard, type CloseReason } from './ui/AboutMeCard'
 import { InteractionPrompt } from './ui/InteractionPrompt'
+import { LightingToggle } from './ui/LightingToggle'
 import { LocationCompass } from './ui/LocationCompass'
 import { NavigationGuide } from './ui/NavigationGuide'
 import { OrganizationCard } from './ui/OrganizationCard'
@@ -37,6 +39,9 @@ const reviewView = getRequestedViewpoint()
 /** `?scene=auditorium` opens straight into Foellinger's showcase, for reviewing it. */
 const reviewAuditorium = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('scene') === 'auditorium'
 const startView = VIEWPOINTS[reviewView ?? 'spawn']
+/** `?lighting=sunset` starts in Sunset (anything else keeps the Daylight default). */
+const initialLighting: LightingMode =
+  typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('lighting') === 'sunset' ? 'sunset' : 'daylight'
 
 export default function App() {
   const [webgl] = useState(hasWebGL)
@@ -44,6 +49,8 @@ export default function App() {
   // In review mode the pause card stays hidden until the visitor first takes control.
   const [hasLocked, setHasLocked] = useState(!reviewView && !reviewAuditorium)
   const [guideOpen, setGuideOpen] = useState(false)
+  /** Daylight (default) or Sunset; lives here so it survives fast travel and the auditorium. */
+  const [lighting, setLighting] = useState<LightingMode>(initialLighting)
   const { isLocked, requestLock, exitLock } = usePointerLock()
   const [canLock] = useState(isPointerLockSupported)
   // About Me interaction
@@ -242,6 +249,7 @@ export default function App() {
             quadDayPromptRef={quadDayPromptRef}
             teleport={teleport}
             active={place === 'quad'}
+          lighting={lighting}
           />
           ) : (
             <SceneUnavailable />
@@ -332,7 +340,23 @@ export default function App() {
             </motion.div>
           )}
         </AnimatePresence>
-        <NavigationGuide open={guideOpen} onOpenChange={setGuide} onTravel={fastTravel} travelling={travelling} />
+        {/* Daylight / Sunset switch, bottom-right (it only affects the Quad, so it steps aside in the auditorium). */}
+        <AnimatePresence>
+          {place === 'quad' && (
+            <motion.div
+              key="lighting"
+              className="fixed right-4 bottom-4 z-20 sm:right-6 sm:bottom-6"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0, transition: { delay: 1.75, duration: 0.5 } }}
+              exit={{ opacity: 0, transition: { duration: 0.3 } }}
+            >
+              <LightingToggle mode={lighting} onChange={setLighting} />
+            </motion.div>
+          )}
+        </AnimatePresence>
+        <NavigationGuide open={guideOpen} onOpenChange={setGuide} onTravel={fastTravel}
+          travelling={travelling}
+        />
 
         {/* Navy fade between the Quad and the auditorium */}
         <motion.div

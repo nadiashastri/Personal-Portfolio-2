@@ -1,6 +1,14 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, type ReactNode } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import { DESTINATIONS, type DestinationId } from '../config/fastTravel'
+import { MiniMap } from './MiniMap'
+
+const CONTROLS: [keys: string, label: string][] = [
+  ['W A S D', 'Walk'],
+  ['Mouse', 'Look around'],
+  ['Shift', 'Jog'],
+  ['E', 'Interact'],
+]
 
 interface NavigationGuideProps {
   open: boolean
@@ -9,6 +17,8 @@ interface NavigationGuideProps {
   onTravel?: (id: DestinationId) => void
   /** A trip is in progress: destinations are briefly disabled. */
   travelling?: boolean
+  /** Extra controls shown beside the Guide button (e.g. the lighting toggle). */
+  extra?: ReactNode
 }
 
 function CompassIcon() {
@@ -34,10 +44,11 @@ function PinIcon() {
 }
 
 /**
- * Top-right guide button with a drop-down "Quick Travel" menu: each stop
- * fast-travels the player there (see config/fastTravel.ts).
+ * Top-right guide button opening the map panel: an illustrated mini-map with
+ * the player's live position and clickable destination pins, beside the
+ * "Quick Travel" list. Both use the same fast travel (config/fastTravel.ts).
  */
-export function NavigationGuide({ open, onOpenChange, onTravel = () => {}, travelling = false }: NavigationGuideProps) {
+export function NavigationGuide({ open, onOpenChange, onTravel = () => {}, travelling = false, extra }: NavigationGuideProps) {
   const root = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -56,6 +67,12 @@ export function NavigationGuide({ open, onOpenChange, onTravel = () => {}, trave
 
   return (
     <div ref={root} className="fixed top-4 right-4 z-40 sm:top-6 sm:right-6">
+      <div className="flex items-center justify-end gap-2">
+      {extra && (
+        <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0, transition: { delay: 1.75, duration: 0.5 } }}>
+          {extra}
+        </motion.div>
+      )}
       <motion.button
         type="button"
         aria-expanded={open}
@@ -73,6 +90,7 @@ export function NavigationGuide({ open, onOpenChange, onTravel = () => {}, trave
           G
         </kbd>
       </motion.button>
+      </div>
 
       <AnimatePresence>
         {open && (
@@ -85,16 +103,15 @@ export function NavigationGuide({ open, onOpenChange, onTravel = () => {}, trave
             exit={{ opacity: 0, y: -6, scale: 0.98, transition: { duration: 0.15 } }}
             transition={{ type: 'spring', stiffness: 420, damping: 32 }}
             style={{ transformOrigin: 'top right' }}
-            className="absolute top-full right-0 mt-3 w-[min(23rem,calc(100vw-2rem))] overflow-hidden rounded-3xl border border-illini-blue/10 bg-cream shadow-card"
+            className="absolute top-full right-0 mt-3 flex max-h-[calc(100dvh-6rem)] w-[min(46rem,calc(100vw-2rem))] flex-col overflow-hidden rounded-3xl border border-illini-blue/10 bg-cream shadow-card"
           >
-            <header className="flex items-start justify-between gap-4 bg-illini-blue px-5 pt-4 pb-5 text-cream">
+            <header className="flex shrink-0 items-start justify-between gap-4 bg-illini-blue px-5 pt-4 pb-4 text-cream">
               <div>
                 <p className="text-[0.68rem] font-semibold tracking-[0.2em] text-illini-orange uppercase">
                   Quad guide
                 </p>
-                <h2 className="mt-1 font-display text-2xl font-extrabold tracking-tight">
-                  Where to next?
-                </h2>
+                <h2 className="mt-1 font-display text-2xl font-extrabold tracking-tight">Explore the Quad</h2>
+                <p className="mt-0.5 text-sm text-cream/70">Find your way around campus.</p>
               </div>
               <button
                 type="button"
@@ -106,15 +123,24 @@ export function NavigationGuide({ open, onOpenChange, onTravel = () => {}, trave
               </button>
             </header>
 
+            <div className="grid min-h-0 overflow-y-auto sm:grid-cols-[minmax(0,18rem)_minmax(0,1fr)]">
+            {/* The illustrated map — click a pin to travel there */}
+            <div className="p-3 max-sm:pb-0">
+              <div className="mx-auto max-w-[18rem] rounded-[1.15rem] border-2 border-dashed border-illini-blue/15 p-1.5 max-sm:max-w-[12.5rem]">
+                <MiniMap onTravel={onTravel} travelling={travelling} />
+              </div>
+            </div>
+
+            <div className="flex min-w-0 flex-col">
             <p className="px-5 pt-3.5 text-[0.65rem] font-semibold tracking-[0.2em] text-illini-orange-deep uppercase">Quick travel</p>
-            <ol className="space-y-1 px-2.5 pt-1.5 pb-2.5">
+            <ol className="space-y-0.5 px-2.5 pt-1 pb-2">
               {DESTINATIONS.map((destination, i) => (
                 <li key={destination.id}>
                   <button
                     type="button"
                     onClick={() => onTravel(destination.id)}
                     disabled={travelling}
-                    className="group flex w-full items-center gap-3.5 rounded-2xl px-3 py-3 text-left transition-colors hover:bg-illini-blue/[0.05] focus-visible:bg-illini-blue/[0.05] disabled:cursor-wait disabled:opacity-60"
+                    className="group flex w-full items-center gap-3.5 rounded-2xl px-3 py-2.5 text-left transition-colors hover:bg-illini-blue/[0.05] focus-visible:bg-illini-blue/[0.05] disabled:cursor-wait disabled:opacity-60"
                   >
                     <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-illini-orange/12 font-display text-sm font-extrabold text-illini-orange-deep transition-colors group-hover:bg-illini-orange group-hover:text-white">
                       {String(i + 1).padStart(2, '0')}
@@ -137,10 +163,20 @@ export function NavigationGuide({ open, onOpenChange, onTravel = () => {}, trave
               ))}
             </ol>
 
-            <p className="border-t border-illini-blue/10 px-5 py-3 text-xs text-ink/55">
-              Pick a stop to travel there. Press <kbd className="font-semibold text-illini-blue">G</kbd> anytime to open
-              this guide, <kbd className="font-semibold text-illini-blue">Esc</kbd> to close it.
+            <dl className="mx-5 mt-auto grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 border-t border-illini-blue/10 pt-3 text-xs text-ink/65">
+              {CONTROLS.map(([keys, label]) => (
+                <div key={label} className="contents">
+                  <dt className="font-semibold text-illini-blue">{keys}</dt>
+                  <dd>{label}</dd>
+                </div>
+              ))}
+            </dl>
+            <p className="px-5 pt-2 pb-4 text-xs text-ink/55">
+              Pick a stop on the map or in the list to travel there. Press <kbd className="font-semibold text-illini-blue">G</kbd>{' '}
+              anytime to open this guide, <kbd className="font-semibold text-illini-blue">Esc</kbd> to close it.
             </p>
+            </div>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>

@@ -3,6 +3,7 @@ import { useFrame, useThree } from '@react-three/fiber'
 import type { Viewpoint } from '../config/viewpoints'
 import { EYE_HEIGHT, MOVEMENT } from '../config/world'
 import { useMovementKeys } from '../hooks/useMovementKeys'
+import { setPlayerPose } from '../lib/playerPose'
 import {
   clampToBounds,
   damp,
@@ -58,6 +59,7 @@ export function FirstPersonController({ enabled, start, colliders = [], settle =
     if (!teleport) return
     position.current = [...teleport.position]
     look.current = lookAngles(teleport.position, teleport.lookAt)
+    setPlayerPose(teleport.position[0], teleport.position[2], look.current.yaw)
     velocity.current = [0, 0]
     grounded.current = true
     settleTime.current = Infinity
@@ -121,6 +123,8 @@ export function FirstPersonController({ enabled, start, colliders = [], settle =
 
     camera.position.set(p[0] + ox, p[1] + bob + oy, p[2] + oz)
     camera.rotation.set(look.current.pitch + op, look.current.yaw, 0)
+    // Share the real (un-bobbed) position and facing with 2D UI such as the mini-map.
+    setPlayerPose(p[0], p[2], look.current.yaw)
   })
 
   return null

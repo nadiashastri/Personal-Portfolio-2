@@ -34,7 +34,7 @@ import type { WindowSpec } from './parts/windows'
  */
 
 const PODIUM = 1.8 // terrace / column platform height
-const FRONT = { w: 42, d: 22 }
+export const FRONT = { w: 42, d: 22 }
 const COLUMN_H = 10.5
 const ENT_Y = PODIUM + COLUMN_H // underside of the entablature (12.3)
 const ENT_H = 3
@@ -50,10 +50,10 @@ const STEPS = 5
 const STEP_RUN = 0.42
 const STAIR_HALF_W = 10.4
 const DOOR_X = [-8.8, 0, 8.8]
-const DRUM = { r: 17, z: -20 }
+export const DRUM = { r: 17, z: -20 }
 const DRUM_TOP = CORNICE_TOP + 1.2
 const SKIRT_H = 1.5
-const DOME = { r: 16.8, h: 10.8, ribs: 24 }
+export const DOME = { r: 16.8, h: 10.8, ribs: 24 }
 /** The Blender dome's origin is the top of the drum. */
 const DOME_TRANSFORM: Transform[] = [{ position: [0, DRUM_TOP, DRUM.z] }]
 
