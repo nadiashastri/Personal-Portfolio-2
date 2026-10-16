@@ -25,8 +25,9 @@ export const PROJECTS: readonly Project[] = [
     affiliation: 'NOBE Tech Committee Software Developer',
     status: 'In progress',
     description: [
-      'Building a multi-tenant SaaS membership platform that helps student organizations manage attendance, member points, absence requests, and infractions.',
-      'My technical work includes designing a Supabase PostgreSQL database schema and implementing row-level security to separate data between organizations.',
+      'Building a SaaS multi-tenant membership platform enabling student groups to log event attendance, monitor member points, process absence requests, and track infractions.',
+      'Transforming NOBE internal attendance tools into a customizable, standalone product suitable for external student group implementation.',
+      'Architecting a Supabase PostgreSQL relational database schema with row-level security policies to partition multi-tenant user and organization data.',
     ],
     stack: ['Next.js', 'TypeScript', 'Supabase', 'PostgreSQL', 'Docker', 'GitHub Actions'],
   },
@@ -69,6 +70,30 @@ export const PROJECTS: readonly Project[] = [
     },
   },
   {
+    id: 'werewolf',
+    title: 'Werewolf Kill — Online Multiplayer Social Deduction Game',
+    affiliationLabel: 'Program',
+    affiliation: 'CS 124 Honors',
+    status: 'Completed',
+    description: [
+      'Collaborated on the development of Werewolf Kill, an interactive online multiplayer adaptation of the classic social deduction game Werewolf, as part of the CS 124 Honors program at the University of Illinois Urbana-Champaign.',
+      "The game brings players together in real-time sessions where they are assigned hidden roles, including villagers, werewolves, and special characters. Players navigate alternating day and night phases, using strategy, communication, and teamwork to identify opponents and achieve their team's objectives.",
+      'Built using React Native and Firebase, the application supports synchronized multiplayer gameplay, role assignments, voting, and in-game messaging. We also integrated the Agora RTC SDK to enable real-time voice communication, including channel-based voice rooms and microphone controls.',
+      "My contributions included designing the game's user interface in Figma and working with the team on implementing interactive features and voice communication. Through this project, I gained experience with real-time database synchronization, component-based application development, and integrating third-party SDKs into a collaborative software project.",
+    ],
+    stack: ['React Native', 'JavaScript', 'Firebase Realtime Database', 'Firebase Authentication', 'Agora RTC SDK', 'Figma', 'Vercel'],
+    features: {
+      title: 'Key features',
+      items: [
+        'Multiplayer sessions with hidden roles and synchronized game states',
+        'Real-time chat, voting, and day/night game progression',
+        'Voice communication with microphone controls and game-specific channels',
+        'Firebase-based player authentication and data synchronization',
+        'Interactive interface designed for dynamic multiplayer gameplay',
+      ],
+    },
+  },
+  {
     id: 'skincare',
     title: 'Personalized Skincare Recommender',
     affiliationLabel: 'Program',
@@ -78,18 +103,6 @@ export const PROJECTS: readonly Project[] = [
       'Developed a skincare recommendation website that helps users discover products based on their skin concerns, active ingredients, and budget.',
     ],
     stack: ['HTML', 'JavaScript', 'Python'],
-  },
-  {
-    id: 'werewolf',
-    title: 'Werewolf Kill',
-    affiliationLabel: 'Program',
-    affiliation: 'CS 124 Honors',
-    status: 'Completed',
-    description: [
-      'Collaborated on an online multiplayer social deduction game inspired by Werewolf.',
-      'The project included real-time multiplayer functionality and voice chat.',
-    ],
-    stack: ['React Native', 'JavaScript', 'Firebase', 'Agora RTC SDK', 'Figma'],
   },
 ]
 

@@ -15,3 +15,10 @@ vi.mock('../scene/auditorium/AuditoriumScene', async () => {
   const { createElement } = await import('react')
   return { AuditoriumScene: () => createElement('div', { 'data-testid': 'auditorium' }) }
 })
+
+// jsdom has no WebGL; the scene itself is stubbed in each test, so report it as available.
+// (ui/__tests__/SceneErrorBoundary.test.tsx covers the unavailable path.)
+vi.mock('../ui/SceneErrorBoundary', async () => {
+  const actual = await vi.importActual<typeof import('../ui/SceneErrorBoundary')>('../ui/SceneErrorBoundary')
+  return { ...actual, hasWebGL: () => true }
+})

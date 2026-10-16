@@ -36,6 +36,10 @@ describe('review viewpoints', () => {
     expect(getRequestedViewpoint('?view=union')).toBe('union')
     expect(getRequestedViewpoint('?view=nowhere')).toBeNull()
     expect(getRequestedViewpoint('')).toBeNull()
+    // Inherited object keys must not be treated as viewpoints (they used to crash the app).
+    for (const name of ['toString', '__proto__', 'constructor', 'hasOwnProperty', '<script>alert(1)</script>']) {
+      expect(getRequestedViewpoint(`?view=${encodeURIComponent(name)}`)).toBeNull()
+    }
     expect(VIEWPOINTS.spawn.position).toEqual(SPAWN_POSITION)
   })
 })

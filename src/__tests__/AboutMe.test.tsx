@@ -44,7 +44,7 @@ async function startExploring() {
 const openCard = async (user: ReturnType<typeof userEvent.setup>) => {
   await user.click(screen.getByRole('button', { name: 'walk into range' }))
   await user.keyboard('e')
-  return screen.findByRole('dialog', { name: "Hey, I'm Nadia!" })
+  return screen.findByRole('dialog', { name: ABOUT_ME.heading })
 }
 
 describe('About Me interaction', () => {
@@ -79,19 +79,35 @@ describe('About Me interaction', () => {
     expect(document.exitPointerLock).toHaveBeenCalled()
     expect(screen.getByTestId('experience')).toHaveAttribute('data-controls', 'false')
     expect(screen.getByRole('button', { name: 'Close About Me' })).toHaveFocus()
-    for (const p of ABOUT_ME.description) expect(screen.getAllByText(p).length).toBeGreaterThan(0) // full text for screen readers
+    for (const p of ABOUT_ME.description) expect(screen.getByText(p)).toBeInTheDocument()
 
     await user.keyboard('e')
     await user.keyboard('e')
     expect(screen.getAllByRole('dialog')).toHaveLength(1)
   })
 
-  it('finishes the typing instantly on a key press, then shows the rest and the toolkit', async () => {
+  it('types only the heading, and a key press finishes it instantly', async () => {
+    const user = await startExploring()
+    await openCard(user)
+    expect(ABOUT_ME.heading).toBe("Hello, I'm Nadia.")
+    // The description is never typed letter by letter: it's present in full from the start.
+    for (const p of ABOUT_ME.description) expect(screen.getByText(p)).toBeInTheDocument()
+    await user.keyboard('x')
+    expect(screen.getByTestId('about-typed')).toHaveTextContent(ABOUT_ME.heading)
+  })
+
+  it('shows education, interests, skills and contact links', async () => {
     const user = await startExploring()
     await openCard(user)
     await user.keyboard('x')
-    expect(screen.getByTestId('about-typed')).toHaveTextContent(ABOUT_ME.description[0])
-    expect(await screen.findByText('Supabase')).toBeInTheDocument()
+    for (const title of ['Education', 'Areas of Interest', 'Technical Skills', "Let's Connect"]) {
+      expect(screen.getByRole('heading', { name: title })).toBeInTheDocument()
+    }
+    expect(screen.getByText('GPA 3.85 / 4.0')).toBeInTheDocument()
+    expect(screen.getByText('Carl Sandburg High School')).toBeInTheDocument()
+    expect(screen.getByText('Quantum computing')).toBeInTheDocument()
+    expect(screen.getByRole('list', { name: 'Tools' })).toHaveTextContent('Supabase')
+    expect(screen.getByRole('list', { name: 'Languages' })).toHaveTextContent('Spanish')
     expect(screen.queryByText("Things I'm curious about")).not.toBeInTheDocument()
   })
 
@@ -121,7 +137,7 @@ describe('About Me interaction', () => {
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
     await user.keyboard('e')
     await screen.findByRole('dialog')
-    expect(screen.getByTestId('about-typed')).toHaveTextContent(ABOUT_ME.description[0])
+    expect(screen.getByTestId('about-typed')).toHaveTextContent(ABOUT_ME.heading)
   })
 })
 

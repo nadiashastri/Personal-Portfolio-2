@@ -98,6 +98,42 @@ code, and Vercel deploys it to the live site automatically.
 2. **Branch protection:** in GitHub, go to *Settings → Branches → Add rule* for `main`. Require a pull
    request before merging, and require the status check **"Quality checks, tests & build"**.
 
+## Security
+
+The site is fully static: there is no server, database, login, form or user-generated content, so
+there is no data to leak and no server to attack. What remains is hardened as follows.
+
+- **HTTP security headers** (set for every response in `vercel.json`, and checked by
+  `src/__tests__/securityHeaders.test.ts`):
+  - A strict **Content Security Policy**. Scripts load only from this site, with no inline scripts
+    and no `eval`; `'wasm-unsafe-eval'` allows only WebAssembly, used by the 3D model decoder. Styles
+    and fonts come only from this site and Google Fonts. The page can't be framed and has no plugins,
+    forms or `<base>` overrides.
+  - **Other headers:** `Strict-Transport-Security` (HTTPS only), `X-Frame-Options: DENY`
+    (clickjacking), `X-Content-Type-Options: nosniff`, a `Referrer-Policy`,
+    `Cross-Origin-Opener-Policy` / `Cross-Origin-Resource-Policy`, and a `Permissions-Policy` that
+    disables the camera, microphone, location, payments and similar features.
+  - **Verified locally:** `npm run preview` serves the build with the same headers, so the policy is
+    checked against the real site. It produced no violations in Chrome.
+- **No injection paths:** content is rendered only as text, never as HTML, and there is no
+  `innerHTML`, `eval` or `dangerouslySetInnerHTML`.
+- **URL parameters:** the review shortcuts (`?view=`, `?scene=`, `?stats`) are only compared against
+  fixed allow-lists, so a crafted value is simply ignored. Built-in object keys such as
+  `?view=__proto__` are rejected too, which a test covers.
+- **Links:** external links open with `rel="noopener noreferrer"`. Project and contact links render
+  only if they're valid `https:` (or `mailto:`) URLs, so values like `javascript:` can never become
+  links.
+- **Failure handling:** if WebGL is unavailable or the 3D scene crashes, an error boundary shows a
+  clear message instead of a blank page, and the rest of the UI keeps working.
+- **Supply chain and CI:**
+  - Every PR runs `npm audit` and fails on high-severity vulnerabilities in runtime dependencies.
+  - The workflow runs with read-only permissions, and the repository holds no secrets.
+  - `main` only accepts reviewed pull requests whose checks pass.
+
+**Recommended repository settings:** under *Settings → Code security*, enable Dependabot alerts,
+secret scanning and push protection. In the `main` branch rule, also block force pushes and
+deletions.
+
 ## Project structure
 
 - `src/content/` — all personal content (about me, projects, organizations, work, contact links).

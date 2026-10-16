@@ -19,6 +19,7 @@ import { OrganizationCard } from './ui/OrganizationCard'
 import { WorkExperienceBoard } from './ui/WorkExperienceBoard'
 import { ProjectShowcase, type ExitReason } from './ui/ProjectShowcase'
 import { ResumePrompt } from './ui/ResumePrompt'
+import { SceneErrorBoundary, SceneUnavailable, hasWebGL } from './ui/SceneErrorBoundary'
 
 type Phase = 'intro' | 'exploring'
 /** Which 3D scene is showing: the Quad, or Foellinger's auditorium. */
@@ -38,6 +39,7 @@ const reviewAuditorium = typeof window !== 'undefined' && new URLSearchParams(wi
 const startView = VIEWPOINTS[reviewView ?? 'spawn']
 
 export default function App() {
+  const [webgl] = useState(hasWebGL)
   const [phase, setPhase] = useState<Phase>(reviewView || reviewAuditorium ? 'exploring' : 'intro')
   // In review mode the pause card stays hidden until the visitor first takes control.
   const [hasLocked, setHasLocked] = useState(!reviewView && !reviewAuditorium)
@@ -223,22 +225,28 @@ export default function App() {
   return (
     <MotionConfig reducedMotion="user">
       <main className="relative h-full w-full select-none">
-        <Experience
-          controlsEnabled={controlsEnabled}
-          start={startView}
-          settle={!reviewView && !reviewAuditorium}
-          onAboutRangeChange={setAboutInRange}
-          aboutPromptRef={aboutPromptRef}
-          onFoellingerRangeChange={setFoellingerInRange}
-          foellingerPromptRef={foellingerPromptRef}
-          onQuadDayTargetChange={setQuadDayTarget}
-          onLocationChange={setLocationId}
-          compassNeedleRef={compassNeedleRef}
-          compassHeadingRef={compassHeadingRef}
-          quadDayPromptRef={quadDayPromptRef}
-          teleport={teleport}
-          active={place === 'quad'}
-        />
+        <SceneErrorBoundary>
+          {webgl ? (
+          <Experience
+            controlsEnabled={controlsEnabled}
+            start={startView}
+            settle={!reviewView && !reviewAuditorium}
+            onAboutRangeChange={setAboutInRange}
+            aboutPromptRef={aboutPromptRef}
+            onFoellingerRangeChange={setFoellingerInRange}
+            foellingerPromptRef={foellingerPromptRef}
+            onQuadDayTargetChange={setQuadDayTarget}
+            onLocationChange={setLocationId}
+            compassNeedleRef={compassNeedleRef}
+            compassHeadingRef={compassHeadingRef}
+            quadDayPromptRef={quadDayPromptRef}
+            teleport={teleport}
+            active={place === 'quad'}
+          />
+          ) : (
+            <SceneUnavailable />
+          )}
+        </SceneErrorBoundary>
         <InteractionPrompt
           anchorRef={quadDayPromptRef}
           visible={exploring && onQuad && quadDayTarget !== null && !dialogOpen}
@@ -251,7 +259,11 @@ export default function App() {
           title="PROJECT SHOWCASE"
           action="Enter Foellinger"
         />
-        {place === 'auditorium' && <AuditoriumScene screenRef={screenRef} />}
+        {place === 'auditorium' && (
+          <SceneErrorBoundary>
+            <AuditoriumScene screenRef={screenRef} />
+          </SceneErrorBoundary>
+        )}
         <AnimatePresence>
           {place === 'auditorium' && !fading && <ProjectShowcase screenRef={screenRef} onExit={exitFoellinger} />}
         </AnimatePresence>

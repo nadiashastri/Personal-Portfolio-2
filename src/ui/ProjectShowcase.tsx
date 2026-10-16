@@ -137,7 +137,7 @@ function Slide({ project, index, total }: { project: Project; index: number; tot
                     key={l.label}
                     href={l.url}
                     target="_blank"
-                    rel="noreferrer"
+                    rel="noopener noreferrer"
                     className="border border-illini-blue px-[1.2cqw] py-[0.5cqw] font-sans text-[max(0.7rem,1.1cqw)] font-semibold tracking-[0.12em] text-illini-blue uppercase transition hover:bg-illini-blue hover:text-cream"
                   >
                     {l.label} ↗

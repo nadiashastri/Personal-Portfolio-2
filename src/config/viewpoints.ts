@@ -50,5 +50,6 @@ export type ViewpointName = keyof typeof VIEWPOINTS
 /** Reads `?view=` from the URL; returns null when absent or unknown. */
 export function getRequestedViewpoint(search = typeof window === 'undefined' ? '' : window.location.search): ViewpointName | null {
   const name = new URLSearchParams(search).get('view')
-  return name && name in VIEWPOINTS ? (name as ViewpointName) : null
+  // Own keys only: `in` would also accept inherited names like 'toString' or '__proto__'.
+  return name && Object.hasOwn(VIEWPOINTS, name) ? (name as ViewpointName) : null
 }

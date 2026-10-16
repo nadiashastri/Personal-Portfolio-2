@@ -43,10 +43,10 @@ export function ContactLinks({ variants }: ContactLinksProps) {
   if (links.length === 0) return null
   return (
     <section aria-labelledby="connect-heading">
-      <motion.h3 variants={variants} id="connect-heading" className="font-title text-[0.95rem] tracking-[0.08em] text-illini-blue uppercase">
+      <motion.h3 variants={variants} id="connect-heading" className="font-title text-[0.85rem] tracking-[0.1em] text-illini-blue uppercase">
         Let&apos;s Connect
       </motion.h3>
-      <ul className="mt-3 flex flex-wrap gap-1.5 max-[420px]:flex-col">
+      <ul className="mt-2 flex flex-wrap gap-1.5 max-[420px]:flex-col">
         {links.map((link) => (
           <motion.li key={link.id} variants={variants}>
             <a

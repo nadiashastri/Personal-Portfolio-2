@@ -8,36 +8,46 @@ export type CloseReason = 'button' | 'escape'
 
 interface AboutMeCardProps {
   onClose: (reason: CloseReason) => void
-  /** Play the full entrance and typewriter (first visit, motion allowed). */
+  /** Play the typed heading and staggered reveal (first visit, motion allowed). */
   animate: boolean
-  /** Called once the description has fully appeared. */
+  /** Called once the heading has finished typing. */
   onRead?: () => void
 }
 
 const EASE = [0.16, 1, 0.3, 1] as const
 
-const reveal: Variants = {
+/** Description fades up as one block; the right-hand sections follow with a slight stagger. */
+const fadeUp: Variants = {
+  hidden: { opacity: 0, y: 10 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.5, ease: EASE } },
+}
+const column: Variants = {
   hidden: {},
-  show: { transition: { staggerChildren: 0.05, delayChildren: 0.05 } },
+  show: { transition: { staggerChildren: 0.07, delayChildren: 0.12 } },
 }
-const item: Variants = {
-  hidden: { opacity: 0, y: 8, scale: 0.96 },
-  show: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.45, ease: EASE } },
+const tags: Variants = { hidden: {}, show: { transition: { staggerChildren: 0.025 } } }
+const tag: Variants = {
+  hidden: { opacity: 0, y: 6 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.3, ease: EASE } },
 }
+
+const SECTION_TITLE = 'font-title text-[0.85rem] tracking-[0.1em] text-illini-blue uppercase'
+const TAG = 'rounded-[0.45rem] border border-b-[3px] border-illini-blue/15 bg-white px-2 pt-0.5 pb-1 font-sans text-[0.76rem] font-semibold text-illini-blue'
 
 /** Keys that shouldn't count as "skip the typing". */
 const NON_SKIP_KEYS = new Set(['Escape', 'Tab', 'Shift', 'Alt', 'Control', 'Meta'])
 
 /**
- * The About Me "player profile": a cream card that springs up over the
- * blurred Quad, types out the introduction, then deals out interests and
- * toolkit badges. Click or press any key to finish the typing instantly.
+ * The About Me "player profile": a wide cream card that springs up over the
+ * blurred Quad. The greeting types itself out (~1 s), then the introduction
+ * fades in on the left while education, interests, skills and contact links
+ * follow on the right. Click or press any key to skip the typing.
  */
 export function AboutMeCard({ onClose, animate, onRead }: AboutMeCardProps) {
   const dialog = useRef<HTMLDivElement>(null)
   const closeButton = useRef<HTMLButtonElement>(null)
-  const [intro, ...moreParagraphs] = ABOUT_ME.description
-  const typing = useTypewriter(intro, { speed: 90, delay: 550, animate })
+  // ~17 characters at 20/s plus short pauses after punctuation ≈ 1.1 s.
+  const typing = useTypewriter(ABOUT_ME.heading, { speed: 20, delay: 300, animate })
   const { done, finish } = typing
 
   useEffect(() => {
@@ -97,7 +107,7 @@ export function AboutMeCard({ onClose, animate, onRead }: AboutMeCardProps) {
       {/* The Quad stays visible: softly blurred and dimmed behind the card. */}
       <div aria-hidden className="fixed inset-0 bg-[rgb(12_26_48/0.32)] backdrop-blur-[6px]" />
 
-      <div className="relative flex min-h-full items-center justify-center p-4 sm:p-8">
+      <div className="relative flex min-h-full items-center justify-center p-4 sm:px-8 sm:py-6">
         <motion.div
           ref={dialog}
           role="dialog"
@@ -110,13 +120,13 @@ export function AboutMeCard({ onClose, animate, onRead }: AboutMeCardProps) {
           exit={{ opacity: 0, scale: 0.94, y: 12, transition: { duration: 0.22, ease: [0.4, 0, 1, 1] } }}
           transition={{ type: 'spring', stiffness: 300, damping: 21, mass: 0.9 }}
           style={{ transformPerspective: 900 }}
-          className="relative w-full max-w-[35rem]"
+          className="relative w-[min(960px,92vw)] max-sm:w-full"
         >
           {/* A slow idle float, so the card feels held in the air rather than pasted on. */}
           <motion.div
             animate={{ y: [0, -4, 0] }}
             transition={{ duration: 5.5, repeat: Infinity, ease: 'easeInOut', delay: 0.8 }}
-            className="relative rounded-[1.5rem] bg-cream px-6 pt-7 pb-6 text-illini-blue shadow-[0_9px_0_#e1d5c1,0_30px_60px_-22px_rgb(12_26_48/0.65)] sm:px-9 sm:pt-9 sm:pb-8"
+            className="relative rounded-[1.5rem] bg-cream px-6 pt-8 pb-4 text-illini-blue shadow-[0_9px_0_#e1d5c1,0_30px_60px_-22px_rgb(12_26_48/0.65)] sm:px-10 sm:pt-8 sm:pb-5"
           >
             {/* Stitched inner border, like a badge or a game inventory panel. */}
             <div aria-hidden className="pointer-events-none absolute inset-2 rounded-[1.1rem] border-2 border-dashed border-illini-blue/12" />
@@ -139,74 +149,137 @@ export function AboutMeCard({ onClose, animate, onRead }: AboutMeCardProps) {
               ✕
             </button>
 
-            {/* Heading row: monogram badge + greeting */}
-            <motion.div
-              className="flex items-center gap-4 pr-10"
-              initial={animate ? { opacity: 0, y: 10 } : false}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.25, duration: 0.5, ease: EASE }}
-            >
-              <div
-                aria-hidden
-                className="grid size-14 shrink-0 place-items-center rounded-[0.9rem] bg-illini-blue font-title text-[1.45rem] text-cream shadow-[0_4px_0_var(--color-illini-orange)]"
-              >
-                NS
-              </div>
-              <h2 id="about-heading" className="font-title text-[clamp(1.8rem,6vw,2.4rem)] leading-[1.02] tracking-[0.01em]">
-                Hey, I&apos;m Nadia<span className="text-illini-orange">!</span>
-              </h2>
-            </motion.div>
-
-            {/* Description: typed for sighted users; the full text is always available to screen readers. */}
-            <div id="about-description" className="sr-only">
-              {ABOUT_ME.description.map((p) => (
-                <p key={p}>{p}</p>
-              ))}
-            </div>
-            <p
-              aria-hidden
-              data-testid="about-typed"
-              className="mt-5 min-h-[7.5rem] font-sans text-[0.98rem] leading-relaxed text-ink/85 sm:text-[1.02rem]"
-            >
-              {typing.visible}
-              {!typing.done && (
-                <span className="ml-0.5 inline-block h-[1.05em] w-[2px] translate-y-[0.18em] animate-[blink_1s_steps(1)_infinite] bg-illini-orange" />
-              )}
-            </p>
-
-            {showDetails && (
-              <motion.div variants={reveal} initial={animate ? 'hidden' : false} animate="show" className="mt-6 space-y-6">
-                {moreParagraphs.length > 0 && (
-                  <div aria-hidden className="-mt-2 space-y-3 font-sans text-[0.98rem] leading-relaxed text-ink/85 sm:text-[1.02rem]">
-                    {moreParagraphs.map((p) => (
-                      <motion.p key={p} variants={item}>
-                        {p}
-                      </motion.p>
-                    ))}
+            {/* Desktop: intro and contact on the left, details on the right. Mobile: one column, contact last. */}
+            <div className="grid gap-x-9 gap-y-6 [grid-template-areas:'intro'_'details'_'contact'] md:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)] md:grid-rows-[auto_1fr] md:[grid-template-areas:'intro_details'_'contact_details']">
+              {/* Left: greeting and introduction */}
+              <div className="min-w-0 [grid-area:intro]">
+                <div className="flex items-center gap-4 pr-10 md:pr-0">
+                  <div
+                    aria-hidden
+                    className="grid size-14 shrink-0 place-items-center rounded-[0.9rem] bg-illini-blue font-title text-[1.45rem] text-cream shadow-[0_4px_0_var(--color-illini-orange)]"
+                  >
+                    NS
                   </div>
-                )}
-                <section>
-                  <motion.h3 variants={item} className="font-title text-[0.95rem] tracking-[0.08em] text-illini-blue uppercase">
-                    {ABOUT_ME.toolkitTitle}
-                  </motion.h3>
-                  <ul className="mt-3 flex flex-wrap gap-2" aria-label="Skills">
-                    {ABOUT_ME.toolkit.map((tool) => (
-                      <motion.li
-                        key={tool}
-                        variants={item}
-                        className="rounded-[0.5rem] border border-illini-blue/15 border-b-[3px] bg-white px-2.5 pt-1 pb-1.5 font-sans text-[0.82rem] font-semibold text-illini-blue"
-                      >
-                        {tool}
-                      </motion.li>
+                  <h2
+                    id="about-heading"
+                    aria-label={ABOUT_ME.heading}
+                    className="relative font-title text-[clamp(1.8rem,4.2vw,2.5rem)] leading-[1.05] tracking-[0.01em]"
+                  >
+                    {/* Invisible full heading reserves the space, so nothing shifts while it types. */}
+                    <span aria-hidden className="invisible">
+                      {ABOUT_ME.heading}
+                    </span>
+                    <span aria-hidden data-testid="about-typed" className="absolute inset-0">
+                      {typing.done ? (
+                        <>
+                          {ABOUT_ME.heading.slice(0, -1)}
+                          <span className="text-illini-orange">{ABOUT_ME.heading.slice(-1)}</span>
+                        </>
+                      ) : (
+                        typing.visible
+                      )}
+                      {!typing.done && (
+                        <span className="ml-0.5 inline-block h-[0.9em] w-[3px] translate-y-[0.1em] animate-[blink_1s_steps(1)_infinite] bg-illini-orange" />
+                      )}
+                    </span>
+                  </h2>
+                </div>
+
+                <motion.div
+                  id="about-description"
+                  variants={fadeUp}
+                  initial={animate ? 'hidden' : false}
+                  animate={showDetails ? 'show' : 'hidden'}
+                  className="mt-4 space-y-3 font-sans text-[0.95rem] leading-[1.6] text-ink/85"
+                >
+                  {ABOUT_ME.description.map((p) => (
+                    <p key={p}>{p}</p>
+                  ))}
+                </motion.div>
+              </div>
+
+              {/* Right: education, interests, skills, contact — separated by a dashed rule */}
+              <motion.div
+                variants={column}
+                initial={animate ? 'hidden' : false}
+                animate={showDetails ? 'show' : 'hidden'}
+                className="min-w-0 space-y-4 border-illini-blue/15 [grid-area:details] max-md:border-t-2 max-md:border-dashed max-md:pt-6 md:border-l-2 md:border-dashed md:pt-1 md:pl-8"
+              >
+                <motion.section variants={fadeUp} aria-labelledby="about-education">
+                  <h3 id="about-education" className={SECTION_TITLE}>
+                    {ABOUT_ME.educationTitle}
+                  </h3>
+                  <ul className="mt-2 space-y-1.5">
+                    {ABOUT_ME.education.map((e) => (
+                      <li key={e.school} className="rounded-[0.7rem] border border-illini-blue/12 bg-white/70 px-3 py-2">
+                        <p className="font-sans text-[0.88rem] leading-snug font-bold text-illini-blue">{e.school}</p>
+                        <p className="font-sans text-[0.8rem] leading-snug text-ink/75">{e.program}</p>
+                        <p className="mt-0.5 flex flex-wrap gap-x-2.5 gap-y-0 font-sans text-[0.66rem] font-semibold tracking-[0.1em] text-illini-orange-deep uppercase">
+                          {e.facts.map((f) => (
+                            <span key={f}>{f}</span>
+                          ))}
+                        </p>
+                        <p className="mt-0.5 font-sans text-[0.72rem] leading-snug text-ink/60">
+                          <span className="font-semibold text-ink/75">Coursework: </span>
+                          {e.coursework}
+                        </p>
+                      </li>
                     ))}
                   </ul>
-                </section>
+                </motion.section>
 
-                <ContactLinks variants={item} />
+                <motion.section variants={fadeUp} aria-labelledby="about-interests">
+                  <h3 id="about-interests" className={SECTION_TITLE}>
+                    {ABOUT_ME.interestsTitle}
+                  </h3>
+                  <motion.ul variants={tags} className="mt-2 flex flex-wrap gap-1.5" aria-label={ABOUT_ME.interestsTitle}>
+                    {ABOUT_ME.interests.map((interest) => (
+                      <motion.li
+                        key={interest}
+                        variants={tag}
+                        className="flex items-center gap-1.5 rounded-[0.45rem] bg-illini-blue px-2 pt-0.5 pb-1 font-sans text-[0.76rem] font-semibold text-cream"
+                      >
+                        <span aria-hidden className="size-1.5 rotate-45 bg-illini-orange" />
+                        {interest}
+                      </motion.li>
+                    ))}
+                  </motion.ul>
+                </motion.section>
+
+                <motion.section variants={fadeUp} aria-labelledby="about-skills">
+                  <h3 id="about-skills" className={SECTION_TITLE}>
+                    {ABOUT_ME.toolkitTitle}
+                  </h3>
+                  <div className="mt-2 space-y-1.5">
+                    {ABOUT_ME.skills.map((group) => (
+                      <div key={group.label} className="flex flex-wrap items-center gap-1.5">
+                        <p className="mr-0.5 font-sans text-[0.64rem] font-semibold tracking-[0.12em] text-ink/50 uppercase">{group.label}</p>
+                        <motion.ul variants={tags} className="contents" aria-label={group.label}>
+                          {group.items.map((item) => (
+                            <motion.li key={item} variants={tag} className={TAG}>
+                              {item}
+                            </motion.li>
+                          ))}
+                        </motion.ul>
+                      </div>
+                    ))}
+                  </div>
+                </motion.section>
+
               </motion.div>
-            )}
 
-            <p aria-hidden className="mt-6 text-right font-sans text-[0.68rem] font-semibold tracking-[0.18em] text-ink/40 uppercase">
+              <motion.div
+                variants={fadeUp}
+                initial={animate ? 'hidden' : false}
+                animate={showDetails ? 'show' : 'hidden'}
+                transition={{ delay: 0.35 }}
+                className="min-w-0 self-end [grid-area:contact]"
+              >
+                <ContactLinks />
+              </motion.div>
+            </div>
+
+            <p aria-hidden className="mt-3 text-right font-sans text-[0.68rem] font-semibold tracking-[0.18em] text-ink/40 uppercase">
               {typing.done ? 'Esc to close' : 'Click or press any key to skip'}
             </p>
           </motion.div>

@@ -9,6 +9,11 @@ on:
   push:
     branches: [main]
 
+# Least privilege: the workflow only needs to read the code (no write access,
+# even for pull requests opened from forks).
+permissions:
+  contents: read
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
@@ -24,6 +29,8 @@ jobs:
           node-version: 24
           cache: npm
       - run: npm ci
+      - name: Dependency vulnerability audit
+        run: npm audit --omit=dev --audit-level=high
       - name: Type-check
         run: npm run typecheck
       - name: Test suite
